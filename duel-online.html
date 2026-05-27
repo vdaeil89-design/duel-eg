@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ДУЭЛЬ · ЕГЭ Русский язык · Онлайн</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --ink: #f4f1e8;
+    --ink-dim: #8a857a;
+    --me: #e63946;
+    --me-glow: rgba(230, 57, 70, 0.4);
+    --foe: #4361ee;
+    --foe-glow: rgba(67, 97, 238, 0.4);
+    --gold: #d4a574;
+    --line: #1f1d1a;
+    --paper: #14120f;
+    --ok: #4caf50;
+    --bad: #f44336;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Cormorant Garamond', serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(230, 57, 70, 0.06), transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(67, 97, 238, 0.06), transparent 50%);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.5;
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  /* === LOBBY === */
+  .lobby {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+  }
+
+  .lobby.hidden { display: none; }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+
+  .title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(60px, 12vw, 140px);
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    margin-bottom: 16px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.4s forwards;
+  }
+
+  .title .accent {
+    font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    color: var(--gold);
+  }
+
+  .subtitle {
+    font-size: 22px;
+    font-style: italic;
+    color: var(--ink-dim);
+    max-width: 600px;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.6s forwards;
+  }
+
+  .name-input-block {
+    margin-bottom: 36px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.7s forwards;
+  }
+
+  .name-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .name-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 600;
+    font-size: 24px;
+    padding: 10px 0;
+    text-align: center;
+    outline: none;
+    min-width: 280px;
+    transition: border-color 0.3s;
+  }
+
+  .name-input:focus { border-bottom-color: var(--gold); }
+
+  .lobby-actions {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.9s forwards;
+  }
+
+  .btn {
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    padding: 22px 56px;
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn:hover:not(:disabled) {
+    background: var(--gold);
+    letter-spacing: 0.25em;
+  }
+
+  .btn.ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+
+  .btn.ghost:hover:not(:disabled) {
+    background: var(--paper);
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .or-divider {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    color: var(--ink-dim);
+    font-size: 18px;
+  }
+
+  /* === HOST/JOIN PANELS === */
+  .panel {
+    display: none;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--gold);
+    padding: 36px;
+    max-width: 540px;
+    width: 100%;
+    margin-top: 16px;
+    animation: fadeUp 0.5s ease;
+  }
+
+  .panel.active { display: block; }
+
+  .panel-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+
+  .panel-sub {
+    font-style: italic;
+    color: var(--ink-dim);
+    margin-bottom: 24px;
+    font-size: 16px;
+  }
+
+  .room-code-display {
+    background: var(--bg);
+    border: 1px dashed var(--gold);
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .room-code-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .room-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 32px;
+    color: var(--ink);
+    letter-spacing: 0.15em;
+    word-break: break-all;
+    user-select: all;
+    cursor: pointer;
+  }
+
+  .copy-hint {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--ink-dim);
+    margin-top: 10px;
+  }
+
+  .copy-hint.copied { color: var(--ok); font-style: normal; }
+
+  .join-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 18px;
+    padding: 18px;
+    outline: none;
+    text-align: center;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+    transition: border-color 0.3s;
+  }
+
+  .join-input:focus { border-color: var(--gold); }
+
+  .status-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+    margin-top: 16px;
+    letter-spacing: 0.05em;
+    min-height: 18px;
+  }
+
+  .status-line.ok { color: var(--ok); }
+  .status-line.bad { color: var(--bad); }
+
+  .pulse-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--gold);
+    border-radius: 50%;
+    margin-right: 8px;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  /* === ARENA === */
+  .arena { display: none; padding: 24px; }
+  .arena.active { display: block; animation: fadeIn 0.6s ease; }
+
+  .arena-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .arena-logo {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    letter-spacing: 0.3em;
+  }
+
+  .arena-logo .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    margin: 0 8px;
+    vertical-align: middle;
+  }
+
+  .conn-indicator {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ok);
+    letter-spacing: 0.1em;
+  }
+
+  .conn-indicator::before {
+    content: '●';
+    margin-right: 6px;
+  }
+
+  .conn-indicator.disconnected { color: var(--bad); }
+
+  .progress-block {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .progress-block strong {
+    color: var(--gold);
+    font-size: 16px;
+  }
+
+  .scoreboard {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 24px;
+    align-items: center;
+    margin-bottom: 40px;
+    padding: 24px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scoreboard::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, var(--me-glow), transparent 30%, transparent 70%, var(--foe-glow));
+    opacity: 0.15;
+    pointer-events: none;
+  }
+
+  .score-side {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+  }
+
+  .score-side.left { justify-content: flex-start; }
+  .score-side.right { justify-content: flex-end; }
+
+  .score-name {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+
+  .score-side.left .score-name { color: var(--me); }
+  .score-side.right .score-name { color: var(--foe); }
+
+  .you-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    margin-left: 8px;
+  }
+
+  .score-number {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 64px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .score-side.left .score-number { color: var(--me); text-shadow: 0 0 30px var(--me-glow); }
+  .score-side.right .score-number { color: var(--foe); text-shadow: 0 0 30px var(--foe-glow); }
+
+  .score-divider {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 28px;
+    color: var(--gold);
+  }
+
+  /* === TASK CARD === */
+  .task-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 36px;
+    position: relative;
+    margin-bottom: 32px;
+  }
+
+  .task-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--me), var(--gold), var(--foe));
+  }
+
+  .task-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .task-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .task-topic {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .task-question {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    line-height: 1.5;
+    margin-bottom: 24px;
+    color: var(--ink);
+  }
+
+  .task-text {
+    font-style: italic;
+    color: var(--ink-dim);
+    padding: 18px 22px;
+    border-left: 2px solid var(--gold);
+    margin-bottom: 28px;
+    font-size: 17px;
+    line-height: 1.6;
+  }
+
+  .my-answer-block {
+    margin-top: 28px;
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-top: 2px solid var(--me);
+    background: rgba(255,255,255,0.02);
+  }
+
+  .my-answer-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    color: var(--me);
+  }
+
+  .my-answer-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 20px;
+    padding: 10px 0;
+    outline: none;
+    letter-spacing: 0.05em;
+    transition: border-color 0.3s;
+  }
+
+  .my-answer-input:focus { border-bottom-color: var(--gold); }
+
+  .my-submit-btn {
+    margin-top: 14px;
+    background: var(--me);
+    border: none;
+    color: var(--ink);
+    padding: 14px 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .my-submit-btn:hover:not(:disabled) { background: var(--gold); color: var(--bg); }
+  .my-submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .my-status {
+    margin-top: 12px;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink-dim);
+    min-height: 22px;
+  }
+
+  .my-status.correct { color: var(--ok); font-style: normal; font-weight: 600; }
+  .my-status.wrong { color: var(--bad); font-style: normal; font-weight: 600; }
+
+  .opponent-status {
+    margin-top: 16px;
+    padding: 16px 22px;
+    border: 1px dashed var(--foe);
+    background: rgba(67, 97, 238, 0.04);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--ink-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .opponent-status strong { color: var(--foe); font-weight: 700; }
+  .opponent-status.correct strong { color: var(--ok); }
+  .opponent-status.wrong strong { color: var(--bad); }
+
+  .reveal-section {
+    margin-top: 24px;
+    padding: 20px 24px;
+    background: rgba(212, 165, 116, 0.06);
+    border: 1px dashed var(--gold);
+    display: none;
+  }
+
+  .reveal-section.shown { display: block; animation: fadeIn 0.5s ease; }
+
+  .reveal-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .reveal-answer {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .reveal-explanation {
+    font-style: italic;
+    color: var(--ink-dim);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .next-btn {
+    width: 100%;
+    margin-top: 24px;
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    padding: 18px;
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: none;
+  }
+
+  .next-btn.shown { display: block; }
+  .next-btn:hover:not(:disabled) {
+    background: var(--gold);
+    letter-spacing: 0.4em;
+  }
+  .next-btn:disabled { opacity: 0.5; cursor: wait; }
+
+  .waiting-msg {
+    text-align: center;
+    font-style: italic;
+    color: var(--ink-dim);
+    margin-top: 16px;
+    font-size: 14px;
+  }
+
+  /* === FINAL === */
+  .final { display: none; min-height: 100vh; padding: 80px 24px; text-align: center; }
+  .final.active { display: flex; flex-direction: column; align-items: center; justify-content: center; animation: fadeIn 0.8s ease; }
+
+  .final-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  .winner-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(50px, 10vw, 120px);
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+  }
+
+  .winner-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: clamp(36px, 7vw, 70px);
+    color: var(--gold);
+    margin-bottom: 50px;
+  }
+
+  .final-scores {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 40px;
+    align-items: center;
+    margin-bottom: 50px;
+  }
+
+  .final-score-block { text-align: center; }
+
+  .final-player-name {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .final-player-name.me { color: var(--me); }
+  .final-player-name.foe { color: var(--foe); }
+
+  .final-score-num {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 90px;
+    line-height: 1;
+  }
+
+  .final-score-num.me { color: var(--me); }
+  .final-score-num.foe { color: var(--foe); }
+
+  .final-vs {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 32px;
+    color: var(--ink-dim);
+  }
+
+  .restart-btn {
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    padding: 22px 56px;
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .restart-btn:hover { background: var(--gold); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes scorePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+
+  .score-pulse { animation: scorePulse 0.5s ease; }
+
+  /* Disconnect overlay */
+  .disconnect-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 10, 0.95);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .disconnect-overlay.active { display: flex; animation: fadeIn 0.4s ease; }
+
+  .disconnect-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 800;
+    font-size: 36px;
+    color: var(--bad);
+    margin-bottom: 16px;
+  }
+
+  .disconnect-text {
+    font-style: italic;
+    color: var(--ink-dim);
+    margin-bottom: 32px;
+    font-size: 18px;
+  }
+
+  @media (max-width: 700px) {
+    .scoreboard { grid-template-columns: 1fr; text-align: center; gap: 12px; }
+    .score-side.left, .score-side.right { justify-content: center; }
+    .score-divider { display: none; }
+    .final-scores { grid-template-columns: 1fr; gap: 24px; }
+    .final-vs { display: none; }
+    .task-card { padding: 24px; }
+    .lobby-actions { flex-direction: column; width: 100%; }
+    .btn { width: 100%; padding: 20px; }
+    .or-divider { padding: 8px 0; }
+    .room-code { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOBBY -->
+<div class="lobby" id="lobby">
+  <div class="eyebrow">⟶ Дуэль · ЕГЭ · Русский язык · Онлайн</div>
+  <h1 class="title">ДУ<span class="accent">э</span>ЛЬ</h1>
+  <p class="subtitle">Двое сходятся в сети. 26 заданий ЕГЭ. Кто быстрее даст верный ответ — забирает очко.</p>
+
+  <div class="name-input-block">
+    <label class="name-label">Твоё имя</label>
+    <input type="text" class="name-input" id="my-name" placeholder="Введи имя" maxlength="20">
+  </div>
+
+  <div class="lobby-actions">
+    <button class="btn" id="create-btn" disabled>Создать комнату</button>
+    <div class="or-divider">или</div>
+    <button class="btn ghost" id="show-join-btn" disabled>Войти в комнату</button>
+  </div>
+
+  <!-- Host panel -->
+  <div class="panel" id="host-panel">
+    <div class="panel-title">Комната создана</div>
+    <div class="panel-sub">Отправь этот код другу — он введёт его, чтобы присоединиться</div>
+    <div class="room-code-display">
+      <div class="room-code-label">Код комнаты</div>
+      <div class="room-code" id="room-code" onclick="copyCode()">—</div>
+      <div class="copy-hint" id="copy-hint">Нажми на код, чтобы скопировать</div>
+    </div>
+    <div class="status-line" id="host-status"><span class="pulse-dot"></span>Ожидание соперника...</div>
+  </div>
+
+  <!-- Join panel -->
+  <div class="panel" id="join-panel">
+    <div class="panel-title">Войти в комнату</div>
+    <div class="panel-sub">Введи код, который тебе прислал друг</div>
+    <input type="text" class="join-input" id="join-code" placeholder="код комнаты" autocomplete="off">
+    <button class="btn" id="join-btn" style="width: 100%;">Присоединиться</button>
+    <div class="status-line" id="join-status"></div>
+  </div>
+</div>
+
+<!-- ARENA -->
+<div class="arena" id="arena">
+  <div class="container">
+    <div class="arena-header">
+      <div class="arena-logo">ДУЭЛЬ<span class="dot"></span>ОНЛАЙН</div>
+      <div class="conn-indicator" id="conn-status">Соединение установлено</div>
+      <div class="progress-block">ЗАДАНИЕ <strong id="task-num">1</strong> / 26</div>
+    </div>
+
+    <div class="scoreboard">
+      <div class="score-side left">
+        <div class="score-name">
+          <span id="display-me">Я</span>
+          <span class="you-badge">⟵ ТЫ</span>
+        </div>
+        <div class="score-number" id="score-me">0</div>
+      </div>
+      <div class="score-divider">—</div>
+      <div class="score-side right">
+        <div class="score-number" id="score-foe">0</div>
+        <div class="score-name" id="display-foe">Соперник</div>
+      </div>
+    </div>
+
+    <div class="task-card" id="task-card"></div>
+  </div>
+</div>
+
+<!-- FINAL -->
+<div class="final" id="final">
+  <div class="final-eyebrow">⟶ Дуэль окончена</div>
+  <h1 class="winner-title" id="winner-title">ПОБЕДА</h1>
+  <div class="winner-name" id="winner-name">—</div>
+
+  <div class="final-scores">
+    <div class="final-score-block">
+      <div class="final-player-name me" id="final-me-name">Я</div>
+      <div class="final-score-num me" id="final-me-score">0</div>
+    </div>
+    <div class="final-vs">из 26</div>
+    <div class="final-score-block">
+      <div class="final-player-name foe" id="final-foe-name">Соперник</div>
+      <div class="final-score-num foe" id="final-foe-score">0</div>
+    </div>
+  </div>
+
+  <button class="restart-btn" onclick="location.reload()">Новая дуэль</button>
+</div>
+
+<!-- DISCONNECT OVERLAY -->
+<div class="disconnect-overlay" id="disconnect-overlay">
+  <div class="disconnect-title">Соединение потеряно</div>
+  <div class="disconnect-text">Соперник отключился или связь прервалась</div>
+  <button class="restart-btn" onclick="location.reload()">На главную</button>
+</div>
+
+<script>
+// =================== ЗАДАНИЯ ===================
+const TASKS = [
+  {
+    num: 1, topic: "Средства связи в тексте",
+    question: "Самостоятельно подберите подчинительный союз, который должен стоять на месте пропуска в третьем (3) предложении текста.",
+    text: "(1) Радуга возникает оттого, что солнечный свет преломляется в водяных каплях. (2) Каждая капля действует как маленькая призма, разлагая белый свет на спектр. (3) Цвета радуги мы видим в строгом порядке, ___ длина волны каждого света различна.",
+    answer: "потому что",
+    accepted: ["потому что", "оттого что", "так как", "поскольку", "ибо"],
+    explanation: "Союз «потому что» (или синонимичные «так как», «поскольку») указывает на причину."
+  },
+  {
+    num: 2, topic: "Лексическое значение слова",
+    question: "Определите значение, в котором слово ЯЗЫК употреблено в предложении: «Русский ЯЗЫК богат фразеологизмами». Выберите номер: 1) орган в полости рта; 2) система словесного выражения мыслей; 3) пленный; 4) металлический стержень в колоколе.",
+    text: "",
+    answer: "2",
+    accepted: ["2"],
+    explanation: "Здесь «язык» — система знаков, средство общения."
+  },
+  {
+    num: 3, topic: "Стилистический анализ",
+    question: "Какая черта характерна для научного стиля? 1) эмоционально-оценочная лексика; 2) точность, логичность, термины; 3) призывность; 4) обилие диалогов.",
+    text: "",
+    answer: "2",
+    accepted: ["2"],
+    explanation: "Научный стиль отличают точность, логичность и термины."
+  },
+  {
+    num: 4, topic: "Орфоэпия (ударение)",
+    question: "В каком слове ударение на ПЕРВЫЙ слог? 1) звонит; 2) красивее; 3) тОрты; 4) договор.",
+    text: "",
+    answer: "3",
+    accepted: ["3"],
+    explanation: "Правильно: тОрты."
+  },
+  {
+    num: 5, topic: "Паронимы",
+    question: "В каком предложении выделенное слово употреблено НЕВЕРНО? 1) Он надел шапку. 2) Она одела ребёнка. 3) Я надел очки. 4) Я ОДЕЛ пальто.",
+    text: "",
+    answer: "4",
+    accepted: ["4"],
+    explanation: "Надевают одежду на себя. Правильно: «надел пальто»."
+  },
+  {
+    num: 6, topic: "Лексическая сочетаемость",
+    question: "Отредактируйте предложение: исключите лишнее слово. «В мае месяце пройдёт конференция». Запиши лишнее слово.",
+    text: "",
+    answer: "месяце",
+    accepted: ["месяце", "месяц"],
+    explanation: "«Май» уже означает месяц — это плеоназм."
+  },
+  {
+    num: 7, topic: "Морфологические нормы",
+    question: "Исправь ошибку: «более красивее». Запиши слово правильно (одним словом).",
+    text: "",
+    answer: "красивее",
+    accepted: ["красивее"],
+    explanation: "Нельзя соединять «более» с формой на «-ее»."
+  },
+  {
+    num: 8, topic: "Синтаксические нормы",
+    question: "В каком предложении нарушено согласование? 1) Те, кто опоздал, остались. 2) Все, кто пришёл, был рад. 3) Он сказал, что придёт. 4) Я знаю, где он живёт.",
+    text: "",
+    answer: "2",
+    accepted: ["2"],
+    explanation: "«Все... были рады» — в главной части нужно мн.ч."
+  },
+  {
+    num: 9, topic: "Правописание корней",
+    question: "В каком ряду во всех словах БЕЗУДАРНАЯ ПРОВЕРЯЕМАЯ гласная? 1) пол..гать, заг..реть; 2) д..лина, прим..рять; 3) р..сток, выр..щенный; 4) к..сательная, прик..сновение.",
+    text: "",
+    answer: "2",
+    accepted: ["2"],
+    explanation: "Долина — долы; примирять — мир. Остальные — чередующиеся."
+  },
+  {
+    num: 10, topic: "Правописание приставок",
+    question: "В каком ряду в обоих словах пишется И? 1) пр..морский, пр..ехать; 2) пр..красный, пр..бить; 3) пр..града, пр..рвать; 4) пр..школьный, пр..красить.",
+    text: "",
+    answer: "1",
+    accepted: ["1"],
+    explanation: "Приморский (близость), приехать (приближение) — ПРИ-."
+  },
+  {
+    num: 11, topic: "Правописание суффиксов",
+    question: "В каком слове пишется суффикс -ЕВ-? 1) ситц..вый; 2) дожд..вой; 3) милост..вый; 4) ноздр..ватый.",
+    text: "",
+    answer: "2",
+    accepted: ["2"],
+    explanation: "Дождевой — под ударением пишется -ЕВ-."
+  },
+  {
+    num: 12, topic: "Окончания глаголов",
+    question: "В каком слове пишется Е? 1) кле..шь; 2) ненавид..шь; 3) бре..шься; 4) дыш..шь.",
+    text: "",
+    answer: "3",
+    accepted: ["3"],
+    explanation: "Брить — исключение I спряжения: бреешься."
+  },
+  {
+    num: 13, topic: "НЕ с разными частями речи",
+    question: "В каком предложении НЕ пишется СЛИТНО? 1) Это (не)правда, а ложь. 2) Дом (не)построен. 3) (Не)решённая задача (без зав. слов). 4) Я (не)знаю.",
+    text: "",
+    answer: "3",
+    accepted: ["3"],
+    explanation: "Полное причастие без зав. слов и противопоставления — слитно."
+  },
+  {
+    num: 14, topic: "Слитное/раздельное написание",
+    question: "В каком варианте оба слова пишутся СЛИТНО? 1) (в)течение дня, (в)виду болезни; 2) (что)бы прийти, (по)этому пути; 3) (не)смотря на дождь, (в)следствие аварии; 4) (из)за угла, (по)тому что.",
+    text: "",
+    answer: "3",
+    accepted: ["3"],
+    explanation: "Несмотря на и вследствие — предлоги, слитно."
+  },
+  {
+    num: 15, topic: "Н и НН в суффиксах",
+    question: "Сколько Н в слове «варё..ый» (без зав. слов)? Введи цифру.",
+    text: "",
+    answer: "1",
+    accepted: ["1", "одна", "н"],
+    explanation: "Отглагольное прилагательное без приставки — одна Н."
+  },
+  {
+    num: 16, topic: "Пунктуация в ССП",
+    question: "В каком предложении нужна ОДНА запятая? 1) Светило солнце и пели птицы. 2) Светило солнце, и пели птицы. 3) Дул ветер и шёл дождь и темнело. 4) Я люблю чай и кофе.",
+    text: "",
+    answer: "2",
+    accepted: ["2"],
+    explanation: "В ССП с разными основами ставится запятая."
+  },
+  {
+    num: 17, topic: "Обособление",
+    question: "В предложении «Книга прочитанная мной вчера понравилась» сколько запятых нужно?",
+    text: "",
+    answer: "2",
+    accepted: ["2", "две"],
+    explanation: "«Книга, прочитанная мной вчера, понравилась» — две запятые."
+  },
+  {
+    num: 18, topic: "Вводные слова",
+    question: "В предложении «Конечно я приду» сколько запятых нужно?",
+    text: "",
+    answer: "1",
+    accepted: ["1", "одна"],
+    explanation: "«Конечно» — вводное, отделяется запятой."
+  },
+  {
+    num: 19, topic: "Знаки в СПП",
+    question: "Сколько запятых в: «Я знаю что ты придёшь когда сможешь»?",
+    text: "",
+    answer: "2",
+    accepted: ["2", "две"],
+    explanation: "Перед «что» и перед «когда»."
+  },
+  {
+    num: 20, topic: "Сложное предложение",
+    question: "В «Когда взошло солнце мы увидели что туман рассеялся» сколько запятых?",
+    text: "",
+    answer: "2",
+    accepted: ["2", "две"],
+    explanation: "«Когда взошло солнце, мы увидели, что туман рассеялся»."
+  },
+  {
+    num: 21, topic: "Тире",
+    question: "В каком предложении ставится ТИРЕ между подлеж. и сказ.? 1) Он студент. 2) Москва столица. 3) Я весел. 4) Дом красивый.",
+    text: "",
+    answer: "2",
+    accepted: ["2"],
+    explanation: "«Москва — столица»: оба сущ. в Им.п."
+  },
+  {
+    num: 22, topic: "Анализ текста",
+    question: "Какова главная мысль текста? 1) Книги дороги. 2) Чтение развивает мышление. 3) Все любят читать. 4) Книги бесполезны.",
+    text: "(1) Чтение — это не просто развлечение. (2) Когда мы читаем, мозг работает интенсивнее, формируются новые нейронные связи. (3) Учёные доказали: регулярное чтение улучшает память и аналитические способности.",
+    answer: "2",
+    accepted: ["2"],
+    explanation: "Текст о пользе чтения для мышления."
+  },
+  {
+    num: 23, topic: "Типы речи",
+    question: "Тип речи фрагмента: «Дом был старый, двухэтажный, с покосившейся крышей и облупившейся краской». 1) повествование; 2) описание; 3) рассуждение.",
+    text: "",
+    answer: "2",
+    accepted: ["2"],
+    explanation: "Перечисление признаков — описание."
+  },
+  {
+    num: 24, topic: "Лексический анализ",
+    question: "Найди в тексте антоним к слову «радость». Введи в начальной форме.",
+    text: "После долгой радости пришла глубокая печаль, и герой не знал, как справиться с этим чувством.",
+    answer: "печаль",
+    accepted: ["печаль"],
+    explanation: "Печаль — антоним радости."
+  },
+  {
+    num: 25, topic: "Средства связи",
+    question: "Чем связаны: «Я люблю осень. Эта пора прекрасна»? 1) лексический повтор; 2) указательное местоимение; 3) синоним; 4) союз.",
+    text: "",
+    answer: "2",
+    accepted: ["2"],
+    explanation: "«Эта» — указательное местоимение."
+  },
+  {
+    num: 26, topic: "Средства выразительности",
+    question: "Какое средство в «Золотая осень шептала листьями»? 1) метафора; 2) олицетворение; 3) гипербола; 4) сравнение.",
+    text: "",
+    answer: "2",
+    accepted: ["2"],
+    explanation: "Приписывание человеческих свойств природе — олицетворение."
+  }
+];
+
+// =================== СОСТОЯНИЕ ===================
+const state = {
+  isHost: false,
+  myName: '',
+  foeName: '',
+  myScore: 0,
+  foeScore: 0,
+  current: 0,
+  iAnswered: false,
+  foeAnswered: false,
+  iWasCorrect: false,
+  foeWasCorrect: false,
+  roundLocked: false,
+  iWantNext: false,
+  foeWantsNext: false,
+};
+
+let peer = null;
+let conn = null;
+
+// =================== УТИЛИТЫ ===================
+function normalize(str) {
+  return str.toLowerCase().trim().replace(/ё/g, 'е').replace(/\s+/g, ' ').replace(/[.,!?;:]/g, '');
+}
+
+function checkAnswer(input, task) {
+  const n = normalize(input);
+  return task.accepted.some(a => normalize(a) === n);
+}
+
+function send(msg) {
+  if (conn && conn.open) {
+    conn.send(msg);
+  }
+}
+
+// =================== LOBBY ===================
+const myNameInput = document.getElementById('my-name');
+const createBtn = document.getElementById('create-btn');
+const showJoinBtn = document.getElementById('show-join-btn');
+const hostPanel = document.getElementById('host-panel');
+const joinPanel = document.getElementById('join-panel');
+const joinBtn = document.getElementById('join-btn');
+const joinCodeInput = document.getElementById('join-code');
+
+myNameInput.addEventListener('input', () => {
+  const has = myNameInput.value.trim().length > 0;
+  createBtn.disabled = !has;
+  showJoinBtn.disabled = !has;
+});
+
+createBtn.addEventListener('click', () => {
+  state.myName = myNameInput.value.trim();
+  state.isHost = true;
+  hostPanel.classList.add('active');
+  joinPanel.classList.remove('active');
+  createBtn.disabled = true;
+  showJoinBtn.disabled = true;
+  myNameInput.disabled = true;
+  initAsHost();
+});
+
+showJoinBtn.addEventListener('click', () => {
+  state.myName = myNameInput.value.trim();
+  state.isHost = false;
+  joinPanel.classList.add('active');
+  hostPanel.classList.remove('active');
+});
+
+joinBtn.addEventListener('click', () => {
+  const code = joinCodeInput.value.trim();
+  if (!code) return;
+  initAsGuest(code);
+});
+
+joinCodeInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') joinBtn.click();
+});
+
+function copyCode() {
+  const code = document.getElementById('room-code').textContent;
+  if (code === '—') return;
+  navigator.clipboard.writeText(code).then(() => {
+    const hint = document.getElementById('copy-hint');
+    hint.textContent = '✓ Код скопирован';
+    hint.classList.add('copied');
+    setTimeout(() => {
+      hint.textContent = 'Нажми на код, чтобы скопировать';
+      hint.classList.remove('copied');
+    }, 2000);
+  });
+}
+window.copyCode = copyCode;
+
+// =================== СОЕДИНЕНИЕ ===================
+function genRoomId() {
+  // Короткий читаемый ID: 6 символов
+  return 'duel-' + Math.random().toString(36).substring(2, 8);
+}
+
+function initAsHost() {
+  const roomId = genRoomId();
+  peer = new Peer(roomId, { debug: 0 });
+
+  peer.on('open', (id) => {
+    document.getElementById('room-code').textContent = id;
+  });
+
+  peer.on('connection', (c) => {
+    conn = c;
+    setupConnection();
+  });
+
+  peer.on('error', (err) => {
+    console.error('Peer error:', err);
+    document.getElementById('host-status').innerHTML = '<span style="color:var(--bad);">Ошибка: ' + err.type + '. Попробуй обновить страницу.</span>';
+  });
+}
+
+function initAsGuest(roomId) {
+  const statusEl = document.getElementById('join-status');
+  statusEl.innerHTML = '<span class="pulse-dot"></span>Подключение...';
+  joinBtn.disabled = true;
+  joinCodeInput.disabled = true;
+
+  peer = new Peer({ debug: 0 });
+
+  peer.on('open', () => {
+    conn = peer.connect(roomId, { reliable: true });
+    setupConnection();
+  });
+
+  peer.on('error', (err) => {
+    console.error('Peer error:', err);
+    statusEl.innerHTML = '<span style="color:var(--bad);">Не удалось подключиться. Проверь код.</span>';
+    joinBtn.disabled = false;
+    joinCodeInput.disabled = false;
+  });
+}
+
+function setupConnection() {
+  conn.on('open', () => {
+    // Обмен именами
+    send({ type: 'hello', name: state.myName });
+
+    if (state.isHost) {
+      document.getElementById('host-status').innerHTML = '<span style="color:var(--ok);">✓ Соперник подключился</span>';
+    } else {
+      document.getElementById('join-status').innerHTML = '<span style="color:var(--ok);">✓ Подключено</span>';
+    }
+  });
+
+  conn.on('data', handleMessage);
+
+  conn.on('close', () => {
+    if (document.getElementById('arena').classList.contains('active') ||
+        !document.getElementById('final').classList.contains('active')) {
+      showDisconnect();
+    }
+  });
+
+  conn.on('error', (err) => {
+    console.error('Connection error:', err);
+  });
+}
+
+function handleMessage(msg) {
+  switch (msg.type) {
+    case 'hello':
+      state.foeName = msg.name;
+      // Когда оба обменялись приветствиями — запускаем
+      if (state.isHost) {
+        // Хост шлёт стартовый сигнал
+        send({ type: 'start' });
+        setTimeout(startGame, 300);
+      }
+      break;
+
+    case 'start':
+      startGame();
+      break;
+
+    case 'answer':
+      // соперник дал ответ
+      state.foeAnswered = true;
+      state.foeWasCorrect = msg.correct;
+      if (msg.correct) {
+        state.foeScore++;
+        document.getElementById('score-foe').textContent = state.foeScore;
+        document.getElementById('score-foe').classList.add('score-pulse');
+        setTimeout(() => document.getElementById('score-foe').classList.remove('score-pulse'), 500);
+      }
+      updateOpponentStatus();
+      checkRoundEnd();
+      break;
+
+    case 'next-ready':
+      state.foeWantsNext = true;
+      tryGoNext();
+      break;
+  }
+}
+
+function showDisconnect() {
+  document.getElementById('disconnect-overlay').classList.add('active');
+}
+
+// =================== ИГРА ===================
+function startGame() {
+  document.getElementById('lobby').classList.add('hidden');
+  document.getElementById('arena').classList.add('active');
+  document.getElementById('display-me').textContent = state.myName;
+  document.getElementById('display-foe').textContent = state.foeName;
+  renderTask();
+}
+
+function renderTask() {
+  state.iAnswered = false;
+  state.foeAnswered = false;
+  state.iWasCorrect = false;
+  state.foeWasCorrect = false;
+  state.roundLocked = false;
+  state.iWantNext = false;
+  state.foeWantsNext = false;
+
+  const task = TASKS[state.current];
+  document.getElementById('task-num').textContent = task.num;
+
+  const card = document.getElementById('task-card');
+  card.innerHTML = `
+    <div class="task-meta">
+      <span class="task-number">Задание №${task.num}</span>
+      <span class="task-topic">${task.topic}</span>
+    </div>
+    <div class="task-question">${task.question}</div>
+    ${task.text ? `<div class="task-text">${task.text}</div>` : ''}
+
+    <div class="my-answer-block" id="my-block">
+      <div class="my-answer-label">⚔ Твой ответ</div>
+      <input type="text" class="my-answer-input" id="my-input" placeholder="Введи ответ" autocomplete="off">
+      <button class="my-submit-btn" id="my-submit">Ответить</button>
+      <div class="my-status" id="my-status"></div>
+    </div>
+
+    <div class="opponent-status" id="opp-status">
+      <strong>${state.foeName}</strong>: думает...
+    </div>
+
+    <div class="reveal-section" id="reveal">
+      <div class="reveal-label">⟶ Верный ответ</div>
+      <div class="reveal-answer">${task.answer}</div>
+      <div class="reveal-explanation">${task.explanation}</div>
+    </div>
+
+    <button class="next-btn" id="next-btn">${state.current === TASKS.length - 1 ? 'Завершить дуэль' : 'Следующее задание →'}</button>
+    <div class="waiting-msg" id="waiting-msg" style="display:none;">Ждём соперника...</div>
+  `;
+
+  document.getElementById('my-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') mySubmit();
+  });
+  document.getElementById('my-submit').addEventListener('click', mySubmit);
+  document.getElementById('next-btn').addEventListener('click', requestNext);
+
+  document.getElementById('my-input').focus();
+}
+
+function mySubmit() {
+  if (state.iAnswered) return;
+  const input = document.getElementById('my-input');
+  const value = input.value.trim();
+  if (!value) return;
+
+  const task = TASKS[state.current];
+  const correct = checkAnswer(value, task);
+
+  state.iAnswered = true;
+  state.iWasCorrect = correct;
+
+  const block = document.getElementById('my-block');
+  const status = document.getElementById('my-status');
+
+  if (correct) {
+    block.style.borderTopColor = 'var(--ok)';
+    status.classList.add('correct');
+    status.textContent = '✓ Верно! +1 очко';
+    state.myScore++;
+    const scoreEl = document.getElementById('score-me');
+    scoreEl.textContent = state.myScore;
+    scoreEl.classList.add('score-pulse');
+    setTimeout(() => scoreEl.classList.remove('score-pulse'), 500);
+  } else {
+    block.style.borderTopColor = 'var(--bad)';
+    status.classList.add('wrong');
+    status.textContent = '✗ Неверно';
+  }
+
+  input.disabled = true;
+  document.getElementById('my-submit').disabled = true;
+
+  send({ type: 'answer', correct: correct });
+
+  checkRoundEnd();
+}
+
+function updateOpponentStatus() {
+  const el = document.getElementById('opp-status');
+  if (state.foeWasCorrect) {
+    el.innerHTML = `<strong>${state.foeName}</strong>: ✓ ответил верно`;
+    el.classList.add('correct');
+  } else {
+    el.innerHTML = `<strong>${state.foeName}</strong>: ✗ ответил неверно`;
+    el.classList.add('wrong');
+  }
+}
+
+function checkRoundEnd() {
+  if (state.roundLocked) return;
+
+  // Раунд заканчивается, если:
+  // 1) кто-то ответил верно
+  // 2) оба ответили (неверно)
+  const someoneCorrect = state.iWasCorrect || state.foeWasCorrect;
+  const bothAnswered = state.iAnswered && state.foeAnswered;
+
+  if (someoneCorrect || bothAnswered) {
+    state.roundLocked = true;
+    // Заблокировать ввод
+    const input = document.getElementById('my-input');
+    const btn = document.getElementById('my-submit');
+    if (input) input.disabled = true;
+    if (btn) btn.disabled = true;
+
+    // Если я не ответил, а соперник угадал — показать это
+    if (!state.iAnswered) {
+      const status = document.getElementById('my-status');
+      status.textContent = '⏱ Соперник опередил';
+      const block = document.getElementById('my-block');
+      block.style.opacity = '0.5';
+    }
+
+    document.getElementById('reveal').classList.add('shown');
+    document.getElementById('next-btn').classList.add('shown');
+  }
+}
+
+function requestNext() {
+  state.iWantNext = true;
+  document.getElementById('next-btn').disabled = true;
+  document.getElementById('waiting-msg').style.display = 'block';
+  send({ type: 'next-ready' });
+  tryGoNext();
+}
+
+function tryGoNext() {
+  if (state.iWantNext && state.foeWantsNext) {
+    state.current++;
+    if (state.current >= TASKS.length) {
+      showFinal();
+    } else {
+      renderTask();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+}
+
+function showFinal() {
+  document.getElementById('arena').classList.remove('active');
+  document.getElementById('arena').style.display = 'none';
+  document.getElementById('final').classList.add('active');
+
+  document.getElementById('final-me-name').textContent = state.myName;
+  document.getElementById('final-foe-name').textContent = state.foeName;
+  document.getElementById('final-me-score').textContent = state.myScore;
+  document.getElementById('final-foe-score').textContent = state.foeScore;
+
+  const title = document.getElementById('winner-title');
+  const name = document.getElementById('winner-name');
+
+  if (state.myScore > state.foeScore) {
+    title.textContent = 'ПОБЕДА';
+    name.textContent = state.myName;
+    name.style.color = 'var(--me)';
+  } else if (state.foeScore > state.myScore) {
+    title.textContent = 'ПОРАЖЕНИЕ';
+    name.textContent = state.foeName + ' — победитель';
+    name.style.color = 'var(--foe)';
+  } else {
+    title.textContent = 'НИЧЬЯ';
+    name.textContent = `${state.myName} = ${state.foeName}`;
+    name.style.color = 'var(--gold)';
+  }
+}
+</script>
+
+</body>
+</html>
