@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Дуэль · ЕГЭ Русский язык</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --border: #e1e4e8;
+    --border-strong: #cfd4da;
+    --text: #1a1d21;
+    --text-soft: #5a6470;
+    --text-mute: #8b95a1;
+    --accent: #2563eb;
+    --accent-soft: #dbe7ff;
+    --accent-hover: #1e4ed8;
+    --me: #2563eb;
+    --me-soft: #eff4ff;
+    --foe: #7c3aed;
+    --foe-soft: #f3edff;
+    --ok: #16a34a;
+    --ok-soft: #ecfdf3;
+    --bad: #dc2626;
+    --bad-soft: #fef2f2;
+    --warn: #d97706;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    font-family: 'Manrope', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  /* === LOBBY === */
+  .lobby {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .lobby.hidden { display: none; }
+
+  .brand {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .brand-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .brand-mark::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .brand-title {
+    font-size: clamp(36px, 6vw, 56px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin-bottom: 12px;
+  }
+
+  .brand-sub {
+    font-family: 'Source Serif 4', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--text-soft);
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    max-width: 480px;
+    width: 100%;
+  }
+
+  .card-step {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-mute);
+    margin-bottom: 8px;
+  }
+
+  .card-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .card-hint {
+    color: var(--text-soft);
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  .field {
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .input:focus {
+    border-color: var(--accent);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .input.mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 20px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.05s;
+  }
+
+  .btn:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn:active:not(:disabled) { transform: scale(0.99); }
+  .btn:disabled { background: var(--border-strong); cursor: not-allowed; color: var(--text-mute); }
+
+  .btn.ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+  }
+  .btn.ghost:hover:not(:disabled) { background: var(--bg); border-color: var(--accent); color: var(--accent); }
+
+  .lobby-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  /* Host/Join panels */
+  .panel {
+    display: none;
+    margin-top: 20px;
+    max-width: 480px;
+    width: 100%;
+  }
+  .panel.active { display: block; animation: slideUp 0.3s ease; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .code-box {
+    background: var(--bg);
+    border: 2px dashed var(--accent);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .code-box:hover { background: var(--accent-soft); }
+
+  .code-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .code-value {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--text);
+    letter-spacing: 0.05em;
+    word-break: break-all;
+  }
+
+  .copy-hint {
+    font-size: 12px;
+    color: var(--text-mute);
+    margin-top: 8px;
+  }
+  .copy-hint.copied { color: var(--ok); font-weight: 600; }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-soft);
+    margin-top: 12px;
+    min-height: 20px;
+  }
+
+  .status.ok { color: var(--ok); font-weight: 600; }
+  .status.bad { color: var(--bad); font-weight: 600; }
+
+  .dot {
+    width: 7px; height: 7px;
+    background: currentColor;
+    border-radius: 50%;
+    animation: pulse 1.4s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* Mode select */
+  .mode-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .mode-card {
+    background: var(--bg);
+    border: 2px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+
+  .mode-card:hover { border-color: var(--accent); }
+  .mode-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .mode-card-title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .mode-card-desc {
+    font-size: 12px;
+    color: var(--text-soft);
+  }
+
+  .count-row {
+    display: none;
+    margin-bottom: 16px;
+  }
+  .count-row.active { display: block; }
+
+  .count-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .count-btn {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 8px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .count-btn:hover { border-color: var(--accent); }
+  .count-btn.selected {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* === ARENA === */
+  .arena { display: none; }
+  .arena.active { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .topbar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .topbar-logo {
+    font-weight: 800;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .topbar-logo::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 2px;
+    transform: rotate(45deg);
+  }
+
+  .conn-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--ok-soft);
+    color: var(--ok);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .conn-pill.bad { background: var(--bad-soft); color: var(--bad); }
+  .conn-pill::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: currentColor;
+    border-radius: 50%;
+  }
+
+  .progress {
+    font-size: 13px;
+    color: var(--text-soft);
+    font-weight: 500;
+  }
+  .progress strong {
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.4s ease;
+  }
+
+  .scoreboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .score-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .score-card.me { border-left: 4px solid var(--me); }
+  .score-card.foe { border-left: 4px solid var(--foe); }
+
+  .score-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .score-tag {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 2px;
+  }
+  .score-card.me .score-tag { color: var(--me); }
+  .score-card.foe .score-tag { color: var(--foe); }
+
+  .score-name {
+    font-weight: 700;
+    font-size: 17px;
+  }
+
+  .score-num {
+    font-weight: 800;
+    font-size: 36px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .score-card.me .score-num { color: var(--me); }
+  .score-card.foe .score-num { color: var(--foe); }
+
+  /* Task card */
+  .task {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 16px;
+  }
+
+  .task-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .task-tag {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.04em;
+  }
+
+  .task-topic {
+    font-size: 13px;
+    color: var(--text-soft);
+    font-weight: 500;
+  }
+
+  .task-q {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .task-text {
+    background: var(--bg);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 14px 18px;
+    font-family: 'Source Serif 4', serif;
+    font-style: italic;
+    color: var(--text-soft);
+    margin-bottom: 20px;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* Answer block */
+  .answer-block {
+    background: var(--me-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-top: 20px;
+  }
+
+  .answer-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--me);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+
+  .answer-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .answer-input {
+    flex: 1;
+    background: white;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .answer-input:focus {
+    border-color: var(--me);
+    box-shadow: 0 0 0 3px var(--me-soft);
+  }
+  .answer-input:disabled { background: var(--bg); color: var(--text-mute); }
+
+  .answer-submit {
+    background: var(--me);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 22px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .answer-submit:hover:not(:disabled) { background: var(--accent-hover); }
+  .answer-submit:disabled { background: var(--border-strong); cursor: not-allowed; }
+
+  .my-status {
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--text-soft);
+    min-height: 20px;
+  }
+  .my-status.correct { color: var(--ok); font-weight: 700; }
+  .my-status.wrong { color: var(--bad); font-weight: 700; }
+
+  .answer-block.correct { background: var(--ok-soft); }
+  .answer-block.correct .answer-label { color: var(--ok); }
+  .answer-block.wrong { background: var(--bad-soft); }
+  .answer-block.wrong .answer-label { color: var(--bad); }
+
+  /* Opponent */
+  .opp-block {
+    margin-top: 14px;
+    background: var(--foe-soft);
+    border: 1px dashed var(--foe);
+    border-radius: 10px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+  }
+
+  .opp-label {
+    font-weight: 700;
+    color: var(--foe);
+  }
+
+  .opp-status-text {
+    color: var(--text-soft);
+  }
+
+  .opp-block.correct {
+    background: var(--ok-soft);
+    border-color: var(--ok);
+  }
+  .opp-block.correct .opp-label { color: var(--ok); }
+
+  .opp-block.wrong {
+    background: var(--bad-soft);
+    border-color: var(--bad);
+  }
+  .opp-block.wrong .opp-label { color: var(--bad); }
+
+  /* Reveal */
+  .reveal {
+    display: none;
+    margin-top: 18px;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+  .reveal.shown { display: block; animation: slideUp 0.3s ease; }
+
+  .reveal-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--warn);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .reveal-answer {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .reveal-exp {
+    color: var(--text-soft);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .next-btn {
+    display: none;
+    width: 100%;
+    background: var(--text);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 14px;
+    margin-top: 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .next-btn.shown { display: block; }
+  .next-btn:hover:not(:disabled) { background: var(--accent); }
+  .next-btn:disabled { background: var(--border-strong); cursor: wait; }
+
+  .waiting {
+    text-align: center;
+    color: var(--text-mute);
+    font-size: 13px;
+    margin-top: 10px;
+    display: none;
+  }
+  .waiting.shown { display: block; }
+
+  /* === FINAL === */
+  .final {
+    display: none;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .final.active { display: flex; flex-direction: column; animation: fadeIn 0.4s ease; }
+
+  .final-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    max-width: 560px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  }
+
+  .final-tag {
+    display: inline-block;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .final-title {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .final-winner {
+    font-family: 'Source Serif 4', serif;
+    font-style: italic;
+    font-size: 22px;
+    color: var(--text-soft);
+    margin-bottom: 36px;
+  }
+
+  .final-scores {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .final-score {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .final-score.me { border-bottom: 3px solid var(--me); }
+  .final-score.foe { border-bottom: 3px solid var(--foe); }
+
+  .final-score-name {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .final-score.me .final-score-name { color: var(--me); }
+  .final-score.foe .final-score-name { color: var(--foe); }
+
+  .final-score-num {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Disconnect overlay */
+  .disc-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .disc-overlay.active { display: flex; }
+
+  .disc-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 36px;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+  }
+
+  .disc-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--bad);
+    margin-bottom: 8px;
+  }
+  .disc-text {
+    color: var(--text-soft);
+    margin-bottom: 24px;
+    font-size: 15px;
+  }
+
+  @media (max-width: 640px) {
+    .scoreboard { grid-template-columns: 1fr; }
+    .final-scores { grid-template-columns: 1fr; }
+    .task { padding: 20px; }
+    .lobby-actions { grid-template-columns: 1fr; }
+    .answer-row { flex-direction: column; }
+    .answer-submit { padding: 11px; }
+    .topbar { padding: 12px 14px; }
+    .container { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOBBY ============ -->
+<div class="lobby" id="lobby">
+  <div class="brand">
+    <div class="brand-mark">ЕГЭ Русский · Онлайн-дуэль</div>
+    <h1 class="brand-title">Дуэль на 26 заданий</h1>
+    <p class="brand-sub">Двое в одной комнате. Одно задание на двоих. Кто быстрее даст верный ответ — забирает очко.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-step">Шаг 1</div>
+    <div class="card-title">Имя и режим</div>
+    <div class="card-hint">Введи имя, выбери формат и создай или войди в комнату.</div>
+
+    <div class="field">
+      <label class="field-label">Твоё имя</label>
+      <input type="text" class="input" id="my-name" placeholder="Например, Алексей" maxlength="20" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label class="field-label">Режим игры</label>
+      <div class="mode-grid">
+        <div class="mode-card selected" data-mode="full">
+          <div class="mode-card-title">Полный вариант</div>
+          <div class="mode-card-desc">Все 26 заданий по порядку, как на ЕГЭ</div>
+        </div>
+        <div class="mode-card" data-mode="random">
+          <div class="mode-card-title">Случайные</div>
+          <div class="mode-card-desc">Перемешанные задания, разное количество</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="count-row" id="count-row">
+      <label class="field-label">Сколько заданий</label>
+      <div class="count-buttons">
+        <button class="count-btn" data-count="5">5</button>
+        <button class="count-btn selected" data-count="10">10</button>
+        <button class="count-btn" data-count="15">15</button>
+        <button class="count-btn" data-count="20">20</button>
+      </div>
+    </div>
+
+    <div class="lobby-actions">
+      <button class="btn" id="create-btn" disabled>Создать комнату</button>
+      <button class="btn ghost" id="join-toggle-btn" disabled>Войти по коду</button>
+    </div>
+  </div>
+
+  <!-- Host panel -->
+  <div class="panel" id="host-panel">
+    <div class="card">
+      <div class="card-step">Шаг 2</div>
+      <div class="card-title">Поделись кодом с другом</div>
+      <div class="card-hint">Скинь этот код собеседнику — он введёт его, чтобы зайти.</div>
+
+      <div class="code-box" onclick="copyCode()">
+        <div class="code-label">Код комнаты</div>
+        <div class="code-value" id="room-code">···</div>
+        <div class="copy-hint" id="copy-hint">Нажми, чтобы скопировать</div>
+      </div>
+
+      <div class="status" id="host-status">
+        <span class="dot"></span>
+        <span>Ожидание соперника...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Join panel -->
+  <div class="panel" id="join-panel">
+    <div class="card">
+      <div class="card-step">Шаг 2</div>
+      <div class="card-title">Войти в комнату</div>
+      <div class="card-hint">Введи код, который тебе прислал друг.</div>
+
+      <div class="field">
+        <input type="text" class="input mono" id="join-code" placeholder="duel-xxxxxx" autocomplete="off">
+      </div>
+
+      <button class="btn" id="join-btn">Присоединиться</button>
+      <div class="status" id="join-status"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ARENA ============ -->
+<div class="arena" id="arena">
+  <div class="container">
+    <div class="topbar">
+      <div class="topbar-logo">Дуэль · ЕГЭ Русский</div>
+      <div class="conn-pill" id="conn-pill">Соединение установлено</div>
+      <div class="progress">Задание <strong id="task-cur">1</strong> из <strong id="task-total">26</strong></div>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
+    </div>
+
+    <div class="scoreboard">
+      <div class="score-card me">
+        <div class="score-info">
+          <div class="score-tag">Ты</div>
+          <div class="score-name" id="display-me">—</div>
+        </div>
+        <div class="score-num" id="score-me">0</div>
+      </div>
+      <div class="score-card foe">
+        <div class="score-info">
+          <div class="score-tag">Соперник</div>
+          <div class="score-name" id="display-foe">—</div>
+        </div>
+        <div class="score-num" id="score-foe">0</div>
+      </div>
+    </div>
+
+    <div class="task" id="task-card"></div>
+  </div>
+</div>
+
+<!-- ============ FINAL ============ -->
+<div class="final" id="final">
+  <div class="final-card">
+    <div class="final-tag">Дуэль окончена</div>
+    <h2 class="final-title" id="final-title">Победа</h2>
+    <p class="final-winner" id="final-winner">—</p>
+
+    <div class="final-scores">
+      <div class="final-score me">
+        <div class="final-score-name" id="final-me-name">Я</div>
+        <div class="final-score-num" id="final-me-score">0</div>
+      </div>
+      <div class="final-score foe">
+        <div class="final-score-name" id="final-foe-name">Соперник</div>
+        <div class="final-score-num" id="final-foe-score">0</div>
+      </div>
+    </div>
+
+    <button class="btn" onclick="location.reload()">Новая дуэль</button>
+  </div>
+</div>
+
+<!-- Disconnect overlay -->
+<div class="disc-overlay" id="disc-overlay">
+  <div class="disc-box">
+    <div class="disc-title">Соединение потеряно</div>
+    <div class="disc-text">Соперник отключился или связь прервалась.</div>
+    <button class="btn" onclick="location.reload()">На главную</button>
+  </div>
+</div>
+
+<script>
+// =================== БАНК ЗАДАНИЙ ===================
+const TASKS = [
+  // ===== БАЗОВЫЕ ЗАДАНИЯ =====
+  {num:1,topic:"Средства связи",question:"Подберите подчинительный союз на место пропуска в третьем (3) предложении.",text:"(1) Радуга возникает оттого, что свет преломляется в каплях. (2) Каждая капля действует как призма. (3) Цвета мы видим в строгом порядке, ___ длина волны каждого света различна.",answer:"потому что",accepted:["потому что","оттого что","так как","поскольку","ибо"],explanation:"Союз указывает на причину."},
+  {num:2,topic:"Лексическое значение",question:"Значение слова ЯЗЫК в предложении «Русский ЯЗЫК богат фразеологизмами»: 1) орган рта; 2) система слов; 3) пленный; 4) часть колокола.",text:"",answer:"2",accepted:["2"],explanation:"Здесь «язык» — система знаков."},
+  {num:4,topic:"Орфоэпия",question:"В каком слове ударение на ПЕРВЫЙ слог? 1) звонит; 2) красивее; 3) тОрты; 4) договор.",text:"",answer:"3",accepted:["3"],explanation:"Правильно: тОрты."},
+  {num:5,topic:"Паронимы",question:"Где слово употреблено НЕВЕРНО? 1) Он надел шапку. 2) Она одела ребёнка. 3) Я надел очки. 4) Я ОДЕЛ пальто.",text:"",answer:"4",accepted:["4"],explanation:"Одежду надевают на себя."},
+  {num:6,topic:"Лексика",question:"Исключите лишнее слово в «В мае месяце пройдёт конференция». Запишите его.",text:"",answer:"месяце",accepted:["месяце","месяц"],explanation:"«Май» уже значит месяц — плеоназм."},
+  {num:7,topic:"Морфология",question:"Исправьте: «более красивее». Запишите одним словом.",text:"",answer:"красивее",accepted:["красивее"],explanation:"Нельзя соединять «более» с формой на «-ее»."},
+
+  // ===== ВАРИАНТ 7 =====
+  {num:1,topic:"Местоимение (вариант 7)",question:"Подберите притяжательное местоимение на место пропуска во 2-м абзаце. Запишите его.",text:"Движение материи многообразно по <…> проявлениям и существует в различных формах. Выделяют три основные группы форм движения материи: в неорганической природе, в живой природе и в обществе.",answer:"своим",accepted:["своим","его"],explanation:"Подходит притяжательное местоимение «своим» (или «его»)."},
+  {num:2,topic:"Лексическое значение (в.7)",question:"Укажите номера, в которых лексическое значение слова соответствует значению в тексте: 1) ОБЩИЙ — совместный; 2) ГЛУБОКИЙ — очень давний; 3) ВЫДЕЛЯТЬ — отмечать курсивом; 4) МАТЕРИЯ — тема разговора; 5) ПРОЦЕСС — последовательная смена состояний.",text:"",answer:"25",accepted:["25","52"],explanation:"Верны 2 (глубокая древность) и 5 (тепловые процессы)."},
+  {num:4,topic:"Орфоэпия (в.7)",question:"Где верно выделена ударная гласная? 1) закУпорить; 2) запЁртый; 3) бантЫ; 4) знАчимый; 5) лОктей.",text:"",answer:"14",accepted:["14","41"],explanation:"Верно: закУпорить, знАчимый."},
+  {num:5,topic:"Паронимы (в.7)",question:"В каком предложении неверно употреблено выделенное слово? Запишите верный пароним.",text:"ЭТИЧНЫЕ нормы не закрепляются в законах или официальных правилах, но это не означает, что они менее важны.",answer:"этические",accepted:["этические"],explanation:"Нормы — этические, а не этичные."},
+  {num:6,topic:"Лексика (в.7)",question:"Отредактируйте предложение: исключите лишнее слово. Выпишите его.",text:"Начиная с X века походы викингов в водную акваторию Белого моря были обыденным делом.",answer:"водную",accepted:["водную"],explanation:"«Акватория» уже значит водное пространство — плеоназм."},
+  {num:7,topic:"Морфология (в.7)",question:"В одном из слов допущена грамматическая ошибка. Запишите слово правильно: ВКУСНЫЙ какао; высокие ТОПОЛЯ; в ДВУХТЫСЯЧНОМ году; турист ВЫМОК; ДОСТИГАЮЩИЙ целей.",text:"",answer:"вкусное",accepted:["вкусное"],explanation:"«Какао» — ср.р.: вкусное какао."},
+  {num:9,topic:"Корни (в.7)",question:"В каких рядах во всех словах одна и та же буква? 1) ур..вновесить, з..рница, (по) к..сательной; 2) прит..реться, ут..шение, увл..кательный; 3) налогообл..жение, возг..рание, тр..фарет; 4) ун..верситет, зан..мательный, ум..лительно; 5) скр..пач, заст..лить, сат..рический.",text:"",answer:"124",accepted:["124","142","214","241","412","421"],explanation:"В рядах 1, 2 и 4 во всех словах одинаковая безударная гласная."},
+  {num:10,topic:"Приставки (в.7)",question:"В каких рядах во всех словах пропущена одна и та же буква? 1) пр..бывать (за границей), пр..берёг, пр..возмогая; 2) о..кормленный, по..толкнул, на..бровная; 3) ра..задорился, бе..вкусица, во..дать; 4) раз..скать, под..тожил, без..нициативный; 5) с..ехать, без..языкий, двух..ярусный.",text:"",answer:"345",accepted:["345","354","435","453","534","543"],explanation:"В рядах 3, 4 и 5 одна и та же буква во всех словах."},
+  {num:11,topic:"Суффиксы (в.7)",question:"Где в обоих словах пропущена одна и та же буква? 1) реч..вой, передёрг..вать; 2) (увидеть) справ.., крупитч..тый; 3) обрад..ваться, полович..к; 4) затм..вать, (улицы) обезлюд..ли; 5) дириж..р, трещ..тка.",text:"",answer:"234",accepted:["234","243","324","342","423","432"],explanation:"В рядах 2, 3, 4 — одна буква в обоих словах."},
+  {num:12,topic:"Окончания глаголов (в.7)",question:"Где в обоих словах пропущена одна и та же буква? 1) терп..шь, (это) противореч..т; 2) вид..мый, исследу..мый; 3) (друзья) вышл..т, кол..тся; 4) забуд..тся, долож..шь; 5) дежур..щий, дорогосто..щие.",text:"",answer:"135",accepted:["135","153","315","351","513","531"],explanation:"В рядах 1, 3 и 5 в обоих словах одна и та же буква."},
+  {num:13,topic:"НЕ (в.7)",question:"Где НЕ с выделенным словом пишется РАЗДЕЛЬНО? 1) (НЕ)СПРЯТАВШИХСЯ под кору жучков; 2) (НЕ)УМЕНЬШАЮЩИЕСЯ, а увеличивающиеся массивы лесов; 3) (НЕ)БЫЛО никакой дороги; 4) (НЕ)БЕЗЫНТЕРЕСНЫХ встреч; 5) (НЕ)ВИДЕВШИЕ человека рябчики.",text:"",answer:"1235",accepted:["1235","2135","3215","5321","1325","1253"],explanation:"Раздельно: 1 (есть зав. слово), 2 (противопоставление), 3 (с глаголом), 5 (есть зав. слово)."},
+  {num:14,topic:"Слитно/раздельно (в.7)",question:"Где оба выделенных слова пишутся СЛИТНО? 1) ЧТО(ТО) поклёвывая (НА)БЕГУ; 2) (ТОТ)ЧАС, БУД(ТО); 3) КАКАЯ(ТО) дорожка, (В)ПЕРЁД; 4) (В)ЛЕВО, (НА)ВСТРЕЧУ её течению; 5) (В)ДАЛЬ, (ЗА)ТЕМ.",text:"",answer:"24",accepted:["24","42"],explanation:"СЛИТНО оба: 2 (тотчас, будто) и 4 (влево, навстречу)."},
+  {num:15,topic:"Н и НН (в.7)",question:"Укажите цифры, на месте которых пишется НН.",text:"На письме(1)ом столе отца Антон увидел книгу, посвящё(2)ую морю. На её обложке была нарисова(3)а бегущая по волнам шхуна, и не испыта(4)ое ранее волнение охватило мальчика.",answer:"124",accepted:["124","142","214","241","412","421"],explanation:"НН в 1 (письменном), 2 (посвящённую), 4 (неиспытанное)."},
+  {num:16,topic:"Запятая в ПП (в.7)",question:"В каких предложениях нужна ОДНА запятая? 1) Я поднялся на крыльцо и вошёл в маленькое тускло освещённое помещение. 2) Смешались в кучу кони люди и залпы тысячи орудий слились в протяжный вой. 3) Спутанная трава и подсолнечник у забора. 4) То ли освещение было иное то ли утратилась непосредственность но мы не узнавали мест. 5) Тяжёлые летние тучи лежали на вершинах гор.",text:"",answer:"13",accepted:["13","31"],explanation:"Одна запятая в 1 и 3."},
+  {num:17,topic:"Деепричастный оборот (в.7)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"Всадник (1) лихо повернув коня (2) дал ему шпоры (3) и (4) проскакав коротким галопом по улице (5) въехал на двор.",answer:"1245",accepted:["1245","1254","2145","1425","4125","2154","5421","4521"],explanation:"Обособляются деепричастные обороты: 1,2 и 4,5."},
+  {num:18,topic:"Вводные слова (в.7)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"Должно быть (1) верхний ящик. Ключи она (2) стало быть (3) в правом кармане носит. И там один ключ (4) конечно (5) не от комода... Значит (6) есть ещё какая-нибудь шкатулка... Однако (7) всё это подло...",answer:"123456",accepted:["123456","1234567"],explanation:"Запятые вокруг вводных слов «должно быть», «стало быть», «конечно», «значит»."},
+  {num:19,topic:"СПП (в.7)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"Дело в том (1) что (2) каждая написанная книга является (3) как бы ядром некой отбушевавшей в человеке туманности, звездой (4) которая родилась из этой туманности (5) и приобретает собственный свет.",answer:"14",accepted:["14","41"],explanation:"Запятые перед «что» (1) и перед «которая» (4)."},
+  {num:20,topic:"Сложное предложение (в.7)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"Педагога (1) который хочет переделать всех на свой лад (2) дети введут в заблуждение (3) и (4) когда выявится настоящий облик ребёнка (5) то воспитатель ощутит своё поражение.",answer:"1235",accepted:["1235","1253","2135","3215","5321","1325"],explanation:"Запятые: 1,2 — придаточное; 3 — между частями; 5 — после придаточного."},
+  {num:21,topic:"Пунктуация — общее правило (в.7)",question:"Найдите предложения, в которых запятая ставится по ОДНОМУ правилу. Запишите номера.",text:"(1)Воздух на Кавказе чист, как молитва ребёнка. (2)И люди там, словно вольные птицы, живут беззаботно. (3)В смуглых чертах их душа говорит. (4)В дымной сакле, землёй иль сухим тростником покрытой, таятся их жёны и девы. (5)Они чистят оружие, шьют серебром. (6)А южная душа их многого желает, не будучи знакомой с цепями судьбы.",answer:"12",accepted:["12","21"],explanation:"В 1 и 2 запятая выделяет сравнительный оборот."},
+  {num:25,topic:"Лексика (в.7)",question:"Из предложений 27–34 выпишите слово со значением «крайний беспорядок, полная путаница».",text:"(27)Сократ говорил, что знание есть воспоминание ранее известного. (28)Отчасти это так... (32)Тогда получается сложная музыка, вызываемая сумбуром чувств.",answer:"сумбуром",accepted:["сумбуром","сумбур"],explanation:"«Сумбур» — крайний беспорядок."},
+
+  // ===== ВАРИАНТ 8 =====
+  {num:1,topic:"Предлог (вариант 8)",question:"Подберите предлог, который должен стоять на месте пропуска в первом абзаце. Запишите его.",text:"Телевидение начинает третью передачу из США, из Нью-Йорка о хоккейном матче <…> сборной Советского Союза и командой «Всех звёзд лиги НХЛ».",answer:"между",accepted:["между"],explanation:"«Матч между ... и ...» — предлог «между»."},
+  {num:2,topic:"Лексическое значение (в.8)",question:"Укажите номера, в которых лексическое значение слова соответствует значению в тексте: 1) ПЕРЕДАЧА — механизм; 2) ЗАБРОСИТЬ — перестать; 3) ВРЕМЯ — промежуток; 4) СУДИТЬ — следить за правилами; 5) ПОЛЕ — большая ровная площадка.",text:"",answer:"345",accepted:["345","354","435","453","534","543"],explanation:"В тексте: время (3), судить матч (4), поле (5)."},
+  {num:4,topic:"Орфоэпия (в.8)",question:"Где верно выделена ударная гласная? 1) тамОжня; 2) положИл; 3) снятА; 4) сосредотОчение; 5) кровотОчить.",text:"",answer:"123",accepted:["123","132","213","231","321","312"],explanation:"Верно: тамОжня, положИл, снятА."},
+  {num:5,topic:"Паронимы (в.8)",question:"В каком предложении неверно употреблён пароним? Запишите подобранное слово.",text:"Как важно ПОПОЛНИТЬ жизнь смыслом и обрести целостность личности!",answer:"наполнить",accepted:["наполнить"],explanation:"Жизнь — наполнить, а не пополнить."},
+  {num:6,topic:"Лексика (в.8)",question:"Замените неверно употреблённое слово. Запишите подобранное.",text:"Многолетней верной службой Бахтеев хотел загладить свою ответственность за опрометчивый поступок, совершённый в юности.",answer:"вину",accepted:["вину"],explanation:"Загладить можно вину, а не ответственность."},
+  {num:7,topic:"Морфология (в.8)",question:"В одном из слов допущена грамматическая ошибка. Запишите его правильно: более НАДЁЖНЫЙ; около ПЯТИСОТ тысяч; знаменитые ПОВАРА; ПОЕЗЖАЙТЕ прямо; в ПОЛУТОРАХ литрах.",text:"",answer:"полутора",accepted:["полутора"],explanation:"Правильно: в ПОЛУТОРА литрах."},
+  {num:9,topic:"Корни (в.8)",question:"В каких рядах во всех словах одна и та же буква? 1) загром..ждать, (предвыборная) к..мпания, т..мительный; 2) ог..рчение, к..рзина, водор..сли; 3) д..ревья, сб..режения, бл..стящий; 4) обр..мление, симп..тичный, р..внина; 5) проч..тать (книгу), ч..стота (радиоволн), сж..мать.",text:"",answer:"234",accepted:["234","243","324","342","423","432"],explanation:"В рядах 2, 3 и 4 во всех словах одна и та же буква."},
+  {num:10,topic:"Приставки (в.8)",question:"В каких рядах во всех словах одна и та же буква? 1) пр..дзаказ, пр..седания (со штангой), пр..града; 2) чере..полосица, ра..каяние, изра..ходовать; 3) с..знова, из..мать, с..грать; 4) ар..ергард, л..ющийся (свет), раз..ехаться; 5) раз..брать, пр..образ (будущего), п..дкараулить.",text:"",answer:"235",accepted:["235","253","325","352","523","532"],explanation:"В рядах 2, 3 и 5 одна и та же буква."},
+  {num:11,topic:"Суффиксы (в.8)",question:"Где в обоих словах пропущена одна и та же буква? 1) застр..вать, вермишел..вый; 2) развед..вательный, забронир..вать; 3) толк..тня, запрост.. (пересказать); 4) завистл..вый, забол..вать; 5) расстра..ваться, сирен..вый.",text:"",answer:"13",accepted:["13","31"],explanation:"В рядах 1 и 3 — одна и та же буква."},
+  {num:12,topic:"Окончания глаголов (в.8)",question:"Где в обоих словах пропущена одна и та же буква? 1) неподража..мый, задерж..шься; 2) предвид..шь, знач..мый; 3) бор..шься, повес..вший; 4) жал..щие (пчёлы), (студенты) труд..тся; 5) животрепещ..щий, (тракторы) паш..т.",text:"",answer:"245",accepted:["245","254","425","452","524","542"],explanation:"В рядах 2, 4, 5 — одна буква."},
+  {num:13,topic:"НЕ (в.8)",question:"Где НЕ пишется СЛИТНО? 1) (НЕ)ОПУБЛИКОВАННЫЕ своевременно материалы; 2) (НЕ)ЗАВЕРШЁННЫЕ работы; 3) Молодой человек (НЕ)ЗНАЛ; 4) (НЕ)ШЕВЕЛЯСЬ; 5) (НЕ)ПРЕМЕННО создаёт.",text:"",answer:"25",accepted:["25","52"],explanation:"СЛИТНО: 2 (без зав. слов) и 5 (наречие без не- не употр.)."},
+  {num:14,topic:"Дефис (в.8)",question:"Где оба слова пишутся ЧЕРЕЗ ДЕФИС? 1) ИЗ(ЗА), (В)СЛЕДСТВИЕ; 2) БОК(О)БОК, ЧТО(ТО); 3) (ПО)МОЕМУ, КАКОЙ(ТО); 4) КРЕПКО(НАКРЕПКО), ГДЕ(НИБУДЬ); 5) (ЮГО)ВОСТОЧНОМ, (АВТО)ВОКЗАЛ.",text:"",answer:"34",accepted:["34","43"],explanation:"Через дефис оба в 3 (по-моему, какой-то) и 4 (крепко-накрепко, где-нибудь)."},
+  {num:15,topic:"Н и НН (в.8)",question:"Укажите все цифры, на месте которых пишется НН.",text:"Входим в стари(1)ый дом: тёмная кухонька, заставле(2)ый склянками подоко(3)ик, краше(4)ый тёмной краской пол, на стенах образа в серебря(5)ом окладе.",answer:"1234",accepted:["1234","2134","3214","4321","1324"],explanation:"НН: 1 (старинный), 2 (заставленный — есть зав. слово), 3 (подоконник), 4 (крашенный — есть зав. слово)."},
+  {num:16,topic:"Запятая в ПП (в.8)",question:"В каких предложениях нужна ОДНА запятая? 1) «Тройка» — первая у Некрасова обобщённая картина крестьянской женской доли и первый эскиз. 2) В поэзии Серебряного века использовались не только ассоциативные возможности слова но и другие способы. 3) Всё дно баркаса было застлано живой ещё шевелящейся рыбой. 4) В квартире у столяра стоит туман и пахнет клеем лаком и стружками. 5) В стих. текст активно включались мотивы и образы разных культур явные и скрытые цитаты.",text:"",answer:"345",accepted:["345","354","435","453","534","543"],explanation:"Одна запятая в 3, 4 и 5."},
+  {num:17,topic:"Обособление (в.8)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"Несмотря на слепящую вьюгу и холод (1) девушка шла смело и твёрдо (2) и (3) только подойдя к подъезду княжеского дома (4) как будто несколько смутилась (5) услышав голос (6) отворявшего ей дверь (7) швейцара.",answer:"1234",accepted:["1234","2134","4321","3412","1324"],explanation:"Запятые: 1 (после оборота), 2 (перед и), 3,4 (деепр. оборот в середине)."},
+  {num:18,topic:"Обращение/вводное (в.8)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"— Наверное (1) фамилия не лошадиная, а какая-нибудь другая! — Истинно слово (2) ваше превосходительство (3) лошадиная... — Экий ты (4) братец (5) всё же беспамятный... Для меня теперь эта фамилия дороже (6) кажется (7) всего на свете.",answer:"1234567",accepted:["1234567"],explanation:"Запятые вокруг вводных слов и обращений на местах 1–7."},
+  {num:19,topic:"СПП (в.8)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"Лаврентий Иванович не сказал (1) что ещё вчера (2) как только задул норд-вест (3) он доложил капитану (4) что лучше (5) уходить отсюда.",answer:"1234",accepted:["1234","2134","4321","1324"],explanation:"Запятые отделяют придаточные части."},
+  {num:20,topic:"СПП (в.8)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"Вы благодарны мне за книги (1) которые я вам приношу (2) и (3) за плохие рисунки (4) которыми я украшаю ваш альбом?",answer:"124",accepted:["124","142","214","241","412","421"],explanation:"Запятые: 1, 2 (выделяют первое придаточное), 4 (перед вторым которое)."},
+  {num:21,topic:"Тире (в.8)",question:"Найдите предложения, в которых тире ставится по ОДНОМУ правилу. Запишите номера.",text:"(2)Вид пруда и мельницы, стук её снастей, шум падающей воды — всё приводит в тихое волнение. (3)Чем-то дорогим глядят воды. (4)Кустами обросшая плотина, переходы из жёрдочек — всё говорит о близком сердцу.",answer:"24",accepted:["24","42"],explanation:"В 2 и 4 тире после ряда однородных перед обобщающим словом «всё»."},
+
+  // ===== ВАРИАНТ 9 =====
+  {num:1,topic:"Частица (вариант 9)",question:"Подберите уточняющую частицу на место пропуска в первом абзаце.",text:"Для того чтобы увидеть что-нибудь по-настоящему, надо убедить себя, что ты видишь это впервые в жизни. <…> это понимание помогло мне пристально всмотреться в осень.",answer:"именно",accepted:["именно","как раз"],explanation:"Уточняющая частица «именно» (или «как раз»)."},
+  {num:2,topic:"Лексическое значение (в.9)",question:"Укажите номера, в которых лексическое значение слова соответствует значению в тексте: 1) ПАМЯТЬ — способность сохранять впечатления; 2) СМЕШАТЬ — соединить; 3) МЯГКИЙ — поддающийся давлению; 4) ВОЗДУХ — атмосфера; 5) ШИРОКИЙ — не стеснённый, с размахом.",text:"",answer:"124",accepted:["124","142","214","241","412","421"],explanation:"В тексте подходят значения 1, 2 и 4."},
+  {num:3,topic:"Характеристика текста (в.9)",question:"Какие характеристики верны? 1) текст научный; 2) ряды однородных членов придают выразительность; 3) тип речи — рассуждение; 4) текст без образности; 5) текст воздействует на читателя эстетической функцией.",text:"",answer:"25",accepted:["25","52"],explanation:"Текст художественный — выразительность через ряды однородных (2) и эстетическую функцию (5)."},
+  {num:4,topic:"Орфоэпия (в.9)",question:"Где верно выделена ударная гласная? 1) обнЯлась; 2) знАчимость; 3) пОручни; 4) кОрысть; 5) углублЁнный.",text:"",answer:"235",accepted:["235","253","325","352","523","532"],explanation:"Верно: знАчимость, пОручни, углублЁнный."},
+  {num:5,topic:"Паронимы (в.9)",question:"Замените пароним в предложении правильным.",text:"Если пациент испытывает НЕТЕРПИМУЮ боль и значительное ограничение подвижности, то может применяться медикаментозная блокада.",answer:"нестерпимую",accepted:["нестерпимую"],explanation:"Боль — нестерпимая (невыносимая), а нетерпимая — что нельзя терпеть, например, лицемерие."},
+  {num:6,topic:"Лексика (в.9)",question:"Исключите лишнее слово.",text:"Солеваренный промысел в бассейне Белого моря процветал до XV века и вновь возобновился только во время Великой Отечественной войны.",answer:"вновь",accepted:["вновь"],explanation:"«Возобновился» уже значит «вновь начался»."},
+  {num:7,topic:"Морфология (в.9)",question:"Исправьте грамматическую ошибку: рисовать более АККУРАТНО; ЖАРЕНЫЙ картофель; до ТРИСТА километров; ПЛЫВЯ по озеру; ЗАПЕЧАТЛЕТЬ на картине.",text:"",answer:"трёхсот",accepted:["трёхсот","трехсот"],explanation:"Правильно: до ТРЁХСОТ километров."},
+  {num:9,topic:"Корни (в.9)",question:"В каких рядах одна и та же буква во всех словах? 1) б..речь, увл..каться, ц..нтральный; 2) раз..бщённый, распол..гаться, г..лактика; 3) экз..менатор, заг..дать, р..скошный; 4) оч..щение, осв..жительный, непост..жимый; 5) напр..вление, вл..делец, уст..ревший.",text:"",answer:"15",accepted:["15","51"],explanation:"В рядах 1 и 5 во всех словах одна и та же буква."},
+  {num:11,topic:"Суффиксы (в.9)",question:"Где в обоих словах одна и та же буква? 1) преподават..ль, привередл..вый; 2) спорщ..к, завис..ть; 3) программир..вать, распар..вать; 4) кост..ная (нога), дров..ной (сарай); 5) (рыболовный) сач..к, девч..нка.",text:"",answer:"45",accepted:["45","54"],explanation:"В рядах 4 и 5 — одна и та же буква."},
+  {num:12,topic:"Окончания глаголов (в.9)",question:"Где в обоих словах одна и та же буква? 1) (они мне) повер..т, порт..щиеся (продукты); 2) став..шь, ре..т (на ветру); 3) (звери) чу..т, (пассажиры) дремл..т; 4) изобража..мый, потер..нный; 5) независ..мый, повер..вший.",text:"",answer:"135",accepted:["135","153","315","351","513","531"],explanation:"В рядах 1, 3, 5 — одна буква."},
+  {num:13,topic:"НЕ (в.9)",question:"Где НЕ пишется РАЗДЕЛЬНО? 1) (НЕ)ПОЛЕ перейти; 2) вышла покалеченной (НЕ)ТОЛЬКО физически; 3) (НЕ)ВНИМАНИЮ к близким; 4) (НЕ)БОГАЧЕ соседей; 5) болтая и (НЕ)ТОРОПЯСЬ.",text:"",answer:"1245",accepted:["1245","1254","2145","4521","1425"],explanation:"Раздельно в 1, 2, 4, 5."},
+  {num:14,topic:"Дефис (в.9)",question:"Где оба слова пишутся ЧЕРЕЗ ДЕФИС? 1) (В)ВЕРХ, (БЛЕДНО)ЗЕЛЁНЫМИ; 2) (С)БОКУ, (ПО)ВИДИМОМУ; 3) КОГДА(ТО), (ПО)РУССКИ; 4) ЧТО(ТО), (ПО)ЗИМНЕМУ; 5) (ВО)ВРЕМЯ, КАКОЕ(ТО).",text:"",answer:"34",accepted:["34","43"],explanation:"Через дефис оба слова в 3 (когда-то, по-русски) и 4 (что-то, по-зимнему)."},
+  {num:15,topic:"Н и НН (в.9)",question:"Укажите цифры, на месте которых пишется НН.",text:"Девушка была рассея(1)ой, но увере(2)о отвечала на неожида(3)ые вопросы преподавателя и заслуже(4)о получила отметку «отлично».",answer:"1234",accepted:["1234","2134","4321","1324"],explanation:"НН во всех четырёх местах."},
+  {num:16,topic:"Запятая в ПП (в.9)",question:"Где нужна ОДНА запятая? 1) Вся наигранная весёлость самообладание и сдержанность покинули Давыдова. 2) Профессор показал инструменты как для ловли так и для раскладывания. 3) Старик то расхаживал и напевал то поучал дочь. 4) Яшка видел только небо да верхушку рябины с гроздьями. 5) Художник должен быть историком и поэтом и философом и наблюдателем.",text:"",answer:"123",accepted:["123","132","213","231","321","312"],explanation:"По одной запятой в предложениях 1, 2 и 3."},
+  {num:17,topic:"Деепричастный оборот (в.9)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"Паншин слегка потрепал Гедеоновского по плечу (1) и (2) повернувшись на каблуках (3) поймал Леночку за голову (4) поцеловав её в лоб.",answer:"234",accepted:["234","243","324","342","423","432"],explanation:"Запятые выделяют деепричастные обороты."},
+  {num:19,topic:"СПП (в.9)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"И я решил бежать главным образом потому (1) что (2) по своему житейскому опыту (3) знал (4) что не имею права безгранично себе доверять.",answer:"14",accepted:["14","41"],explanation:"Запятые перед «что» (1) и перед второй частью (4)."},
+  {num:20,topic:"СПП (в.9)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"Годы работы подтверждают (1) что дети заслуживают уважения (2) и (3) что нам приятно быть с ними в этой ясной атмосфере.",answer:"1",accepted:["1"],explanation:"Одна запятая — перед первым «что»."},
+  {num:21,topic:"Двоеточие (в.9)",question:"Найдите предложения, в которых двоеточие ставится по ОДНОМУ правилу. Запишите номера.",text:"(1)Я глядел на снега и далёкие льдины утёсов: они так сияли в лучах солнца. (2)Тогда казалось: в розовый блеск одеваясь, снега и льдины возвещали утро. (3)Между тем внизу всё было темно: деревья, дома и луга.",answer:"124",accepted:["124","142","214","241","412","421"],explanation:"В 1, 2 и 4 двоеточие после первой части — причина/пояснение."},
+
+  // ===== ВАРИАНТ 10 =====
+  {num:1,topic:"Местоимение (вариант 10)",question:"Подберите относительное местоимение (союзное слово) на место пропуска во 2-м абзаце.",text:"Эту задачу удалось решить Н. М. Карамзину, <…> «Письма русского путешественника» можно считать истоками русского путевого очерка.",answer:"чьи",accepted:["чьи"],explanation:"Относительное местоимение «чьи»."},
+  {num:2,topic:"Лексическое значение (в.10)",question:"Укажите номера, в которых лексическое значение слова соответствует значению в тексте: 1) ЯРКИЙ — сильный, впечатляющий; 2) СВЯЗАТЬ — быть сопряжённым; 3) ПРИБЕГАТЬ — достигать бегом; 4) ДЕЛИТЬСЯ — рассказывать дружески; 5) ЭЛЕМЕНТ — простое вещество.",text:"",answer:"124",accepted:["124","142","214","241","412","421"],explanation:"В тексте: яркий (1), связано (2), делиться мыслями (4)."},
+  {num:4,topic:"Орфоэпия (в.10)",question:"Где верно выделена ударная гласная? 1) совралА; 2) тортЫ; 3) прозорлИва; 4) красивЕе; 5) довезЁнный.",text:"",answer:"135",accepted:["135","153","315","351","513","531"],explanation:"Верно: совралА, прозорлИва, довезЁнный."},
+  {num:5,topic:"Паронимы (в.10)",question:"Замените пароним правильным.",text:"Вам необходимо посещать дополнительные занятия, чтобы ЗАПОЛНИТЬ пробелы в знаниях.",answer:"восполнить",accepted:["восполнить"],explanation:"Пробелы в знаниях — восполняют."},
+  {num:6,topic:"Лексика (в.10)",question:"Замените повторённое неверное слово.",text:"Творчеству А. П. Чехова посвящена серия лекций, на которых были прочитаны отрывки из его творчества.",answer:"произведений",accepted:["произведений","текстов","книг","сочинений"],explanation:"Чтобы избежать тавтологии: отрывки из произведений (книг, текстов)."},
+  {num:7,topic:"Морфология (в.10)",question:"Исправьте грамматическую ошибку: бежал БЫСТРЕЕ всех; нет ПОЛУТОРА тысяч человек; это НЕДРА земли; МОКНУЛ под дождём; группа ЯКУТОВ.",text:"",answer:"мок",accepted:["мок"],explanation:"Прошедшее время: «мок» (без -ну-)."},
+  {num:9,topic:"Корни (в.10)",question:"В каких рядах одна и та же буква во всех словах? 1) к..мпания (друзей), п..лисадник, (семена дали) р..сток; 2) ум..лять (о помощи), п..радокс, к..сательная; 3) упр..щение, благосл..вение, распол..жение; 4) пок..яние, насл..ждение, с..тирический; 5) бл..стать, напом..нать, расст..лать.",text:"",answer:"345",accepted:["345","354","435","453","534","543"],explanation:"В рядах 3, 4, 5 одна и та же буква."},
+  {num:10,topic:"Приставки (в.10)",question:"В каких рядах одна и та же буква? 1) ро..черк, не..гибаемый, и..подтишка; 2) д..гнать, вз..браться, п..дножие (горы); 3) бе..скусный, вз..мать (штраф), за..нтересованный; 4) пр..вязанный, пр..интересный, пр..строиться; 5) суб..ективный, в..езд, обез..яний.",text:"",answer:"12",accepted:["12","21"],explanation:"В рядах 1 и 2 одна и та же буква во всех словах."},
+  {num:11,topic:"Суффиксы (в.10)",question:"Где в обоих словах одна и та же буква? 1) вышаг..вать, насмешл..вый; 2) недоум..вать, разборч..вый; 3) взрывч..тые (вещества), (вернуться) снов..; 4) команд..вать, изразц..вая (печь); 5) магни..вый, быстр..нько.",text:"",answer:"1345",accepted:["1345","1435","3145","4135","5431","3415"],explanation:"В рядах 1, 3, 4, 5 — одна и та же буква."},
+  {num:12,topic:"Окончания глаголов (в.10)",question:"Где в обоих словах одна и та же буква? 1) скач..щий, (они) выдерж..т; 2) забле..т (ягнята), се..щий; 3) рассерж..нный, замеш..нный (в преступлении); 4) омыва..мый, верт..шься; 5) отгон..шь, поспор..вший.",text:"",answer:"25",accepted:["25","52"],explanation:"В рядах 2 и 5 — одна буква."},
+  {num:13,topic:"НЕ (в.10)",question:"Где НЕ пишется СЛИТНО? 1) (НЕ)СКОНЧАЕМЫЙ пейзаж; 2) (НЕ)ВСЕГДА удачно; 3) (НЕ)ПЕРЕСТАЁШЬ любоваться; 4) почти (НЕ)СЛЫШНО играет; 5) (НЕ)НАВИДЕЛ.",text:"",answer:"145",accepted:["145","154","415","451","514","541"],explanation:"Слитно: 1 (нескончаемый), 4 (наречие), 5 (без не не употр.)."},
+  {num:14,topic:"Раздельно (в.10)",question:"Где оба выделенных слова пишутся РАЗДЕЛЬНО? 1) ТАК(ЖЕ), КАК(БУДТО); 2) (ЗА)ЧАСТУЮ, (ПРИ)ЧЁМ; 3) (ЯРКО)КРАСНОЕ, (В)ПЕРВЫЕ; 4) (В)ГЛУБЬ, (НА)ПРОТЯЖЕНИИ; 5) ТУТ(ЖЕ), ЧТО(БЫ).",text:"",answer:"14",accepted:["14","41"],explanation:"Раздельно оба слова в 1 (так же, как будто) и 4 (в глубь, на протяжении)."},
+  {num:15,topic:"Н и НН (в.10)",question:"Укажите цифры, на месте которых пишется НН.",text:"Для получения бумаги высокого качества раздробле(1)ые, пропита(2)ые особым составом, варе(3)ые при особой температуре стволы деревьев должны быть превраще(4)ы в текучую массу.",answer:"1234",accepted:["1234","2134","4321","1324"],explanation:"НН — везде в полных и кратких причастиях."},
+  {num:16,topic:"Запятая в ПП (в.10)",question:"Где нужна ОДНА запятая? 1) Дверь щёлкнула запищала и ударила Каштанку. 2) Бунин одинаково ярко проявил себя и как поэт и как художник и как переводчик. 3) Футуристы заявляли об отказе от классики и о задаче создания нового искусства. 4) Стояли пирамидальные тополя и группу можно было принять за башню. 5) Снег засыплет и предаст забвению опушки и тропинки.",text:"",answer:"14",accepted:["14","41"],explanation:"Одна запятая в 1 и 4."},
+  {num:17,topic:"Деепричастный/причастный оборот (в.10)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"Величественное животное (1) застывшее в нескольких десятках метров от нас (2) качнуло своими ветвистыми рогами (3) и (4) сорвавшись с места (5) скрылось в чаще.",answer:"1245",accepted:["1245","1254","2145","4521","1425"],explanation:"Запятые: 1,2 — причастный оборот; 4,5 — деепричастный."},
+  {num:18,topic:"Вводные слова (в.10)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"Цвет лица у Ильи Ильича не был ни румяный, ни смуглый (1) может быть (2) потому, что Обломов как-то обрюзг не по летам... Вообще же тело его (3) казалось (4) слишком изнеженным для мужчины.",answer:"12",accepted:["12","21"],explanation:"Запятые вокруг «может быть» — вводное."},
+  {num:19,topic:"СПП (в.10)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"Княжна Марья умоляла брата подождать ещё день и говорила (1) о том (2) что она знает (3) как будет несчастлив отец (4) ежели Андрей уедет без примирения.",answer:"234",accepted:["234","243","324","342","423","432"],explanation:"Запятые отделяют придаточные."},
+  {num:20,topic:"Сложное предложение (в.10)",question:"Укажите цифры, на месте которых должны стоять запятые.",text:"Бежали часы (1) и (2) когда на белом циферблате короткая (3) и широкая стрелка пошла к пяти (4) настала полудрёма.",answer:"124",accepted:["124","142","214","241","412","421"],explanation:"Запятые: 1, 2 — при стечении союзов, 4 — после придаточного."},
+  {num:21,topic:"Тире (в.10)",question:"Найдите предложения, в которых тире ставится по ОДНОМУ правилу. Запишите номера.",text:"(1)В группу Чегемских водопадов — памятника природы — входят три водопада. (3)Он находится на притоке Чегема — речке Адай-Су. (5)Адай-Су — самый мощный водопад группы.",answer:"13",accepted:["13","31"],explanation:"В 1 и 3 — тире выделяет приложение."},
+  {num:25,topic:"Лексика (в.10)",question:"В предложениях 30–33 найдите слово со значением «своеобразный, необычный». Запишите.",text:"(30)И потому-то он с одинаковой любовью ухаживал за цветами. (31)Он с удовольствием глядел на новые здания оригинальной постройки.",answer:"оригинальной",accepted:["оригинальной","оригинальный"],explanation:"«Оригинальный» — своеобразный, необычный."}
+];
+
+// =================== СОСТОЯНИЕ ===================
+const state = {
+  isHost: false,
+  myName: '',
+  foeName: '',
+  myScore: 0,
+  foeScore: 0,
+  taskOrder: [],   // массив индексов TASKS, который синхронизирован
+  current: 0,
+  iAnswered: false,
+  foeAnswered: false,
+  iWasCorrect: false,
+  foeWasCorrect: false,
+  roundLocked: false,
+  iWantNext: false,
+  foeWantsNext: false,
+  mode: 'full',
+  count: 26
+};
+
+let peer = null;
+let conn = null;
+
+// =================== УТИЛИТЫ ===================
+function normalize(s) {
+  return s.toLowerCase().trim().replace(/ё/g, 'е').replace(/\s+/g, ' ').replace(/[.,!?;:]/g, '');
+}
+function checkAnswer(input, task) {
+  const n = normalize(input);
+  return task.accepted.some(a => normalize(a) === n);
+}
+function send(msg) { if (conn && conn.open) conn.send(msg); }
+
+function buildTaskOrder(mode, count) {
+  if (mode === 'full') {
+    return TASKS.map((_, i) => i);
+  } else {
+    const indices = TASKS.map((_, i) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+    return indices.slice(0, count);
+  }
+}
+
+// =================== LOBBY UI ===================
+const myNameInput = document.getElementById('my-name');
+const createBtn = document.getElementById('create-btn');
+const joinToggleBtn = document.getElementById('join-toggle-btn');
+const hostPanel = document.getElementById('host-panel');
+const joinPanel = document.getElementById('join-panel');
+const joinBtn = document.getElementById('join-btn');
+const joinCodeInput = document.getElementById('join-code');
+const countRow = document.getElementById('count-row');
+
+myNameInput.addEventListener('input', () => {
+  const has = myNameInput.value.trim().length > 0;
+  createBtn.disabled = !has;
+  joinToggleBtn.disabled = !has;
+});
+
+// Mode select
+document.querySelectorAll('.mode-card').forEach(c => {
+  c.addEventListener('click', () => {
+    document.querySelectorAll('.mode-card').forEach(x => x.classList.remove('selected'));
+    c.classList.add('selected');
+    state.mode = c.dataset.mode;
+    if (state.mode === 'random') {
+      countRow.classList.add('active');
+    } else {
+      countRow.classList.remove('active');
+      state.count = 26;
+    }
+  });
+});
+
+// Count select
+document.querySelectorAll('.count-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.count-btn').forEach(x => x.classList.remove('selected'));
+    b.classList.add('selected');
+    state.count = parseInt(b.dataset.count, 10);
+  });
+});
+
+createBtn.addEventListener('click', () => {
+  state.myName = myNameInput.value.trim();
+  state.isHost = true;
+  // Хост определяет порядок заданий
+  state.taskOrder = buildTaskOrder(state.mode, state.count);
+  hostPanel.classList.add('active');
+  joinPanel.classList.remove('active');
+  createBtn.disabled = true;
+  joinToggleBtn.disabled = true;
+  myNameInput.disabled = true;
+  document.querySelectorAll('.mode-card, .count-btn').forEach(el => el.style.pointerEvents = 'none');
+  initAsHost();
+});
+
+joinToggleBtn.addEventListener('click', () => {
+  state.myName = myNameInput.value.trim();
+  state.isHost = false;
+  joinPanel.classList.add('active');
+  hostPanel.classList.remove('active');
+});
+
+joinBtn.addEventListener('click', () => {
+  const code = joinCodeInput.value.trim();
+  if (!code) return;
+  initAsGuest(code);
+});
+
+joinCodeInput.addEventListener('keypress', e => { if (e.key === 'Enter') joinBtn.click(); });
+
+function copyCode() {
+  const code = document.getElementById('room-code').textContent;
+  if (code === '···') return;
+  navigator.clipboard.writeText(code).then(() => {
+    const hint = document.getElementById('copy-hint');
+    hint.textContent = '✓ Скопировано';
+    hint.classList.add('copied');
+    setTimeout(() => {
+      hint.textContent = 'Нажми, чтобы скопировать';
+      hint.classList.remove('copied');
+    }, 2000);
+  });
+}
+window.copyCode = copyCode;
+
+// =================== СОЕДИНЕНИЕ ===================
+function genRoomId() {
+  return 'duel-' + Math.random().toString(36).substring(2, 8);
+}
+
+function initAsHost() {
+  const roomId = genRoomId();
+  peer = new Peer(roomId, { debug: 0 });
+
+  peer.on('open', id => {
+    document.getElementById('room-code').textContent = id;
+  });
+
+  peer.on('connection', c => {
+    conn = c;
+    setupConnection();
+  });
+
+  peer.on('error', err => {
+    console.error(err);
+    document.getElementById('host-status').innerHTML = `<span style="color:var(--bad);">Ошибка: ${err.type}</span>`;
+  });
+}
+
+function initAsGuest(roomId) {
+  const statusEl = document.getElementById('join-status');
+  statusEl.innerHTML = '<span class="dot"></span><span>Подключение...</span>';
+  joinBtn.disabled = true;
+  joinCodeInput.disabled = true;
+
+  peer = new Peer({ debug: 0 });
+
+  peer.on('open', () => {
+    conn = peer.connect(roomId, { reliable: true });
+    setupConnection();
+  });
+
+  peer.on('error', err => {
+    console.error(err);
+    statusEl.innerHTML = '<span style="color:var(--bad);">Не удалось подключиться. Проверь код.</span>';
+    statusEl.className = 'status bad';
+    joinBtn.disabled = false;
+    joinCodeInput.disabled = false;
+  });
+}
+
+function setupConnection() {
+  conn.on('open', () => {
+    send({ type: 'hello', name: state.myName });
+
+    if (state.isHost) {
+      document.getElementById('host-status').innerHTML = '<span style="color:var(--ok);">✓ Соперник подключился</span>';
+      document.getElementById('host-status').className = 'status ok';
+    } else {
+      document.getElementById('join-status').innerHTML = '<span style="color:var(--ok);">✓ Подключено</span>';
+      document.getElementById('join-status').className = 'status ok';
+    }
+  });
+
+  conn.on('data', handleMessage);
+  conn.on('close', () => showDisconnect());
+  conn.on('error', err => console.error(err));
+}
+
+function handleMessage(msg) {
+  switch (msg.type) {
+    case 'hello':
+      state.foeName = msg.name;
+      if (state.isHost) {
+        // Хост отправляет конфигурацию игры
+        send({ type: 'config', taskOrder: state.taskOrder });
+        setTimeout(startGame, 300);
+      }
+      break;
+    case 'config':
+      // Гость получает порядок заданий от хоста
+      state.taskOrder = msg.taskOrder;
+      startGame();
+      break;
+    case 'answer':
+      state.foeAnswered = true;
+      state.foeWasCorrect = msg.correct;
+      if (msg.correct) {
+        state.foeScore++;
+        document.getElementById('score-foe').textContent = state.foeScore;
+      }
+      updateOpponentStatus();
+      checkRoundEnd();
+      break;
+    case 'next-ready':
+      state.foeWantsNext = true;
+      tryGoNext();
+      break;
+  }
+}
+
+function showDisconnect() {
+  if (!document.getElementById('final').classList.contains('active')) {
+    document.getElementById('disc-overlay').classList.add('active');
+  }
+}
+
+// =================== ИГРА ===================
+function startGame() {
+  document.getElementById('lobby').classList.add('hidden');
+  document.getElementById('arena').classList.add('active');
+  document.getElementById('display-me').textContent = state.myName;
+  document.getElementById('display-foe').textContent = state.foeName;
+  document.getElementById('task-total').textContent = state.taskOrder.length;
+  renderTask();
+}
+
+function renderTask() {
+  state.iAnswered = false;
+  state.foeAnswered = false;
+  state.iWasCorrect = false;
+  state.foeWasCorrect = false;
+  state.roundLocked = false;
+  state.iWantNext = false;
+  state.foeWantsNext = false;
+
+  const taskIdx = state.taskOrder[state.current];
+  const task = TASKS[taskIdx];
+  document.getElementById('task-cur').textContent = state.current + 1;
+  document.getElementById('progress-fill').style.width = ((state.current) / state.taskOrder.length * 100) + '%';
+
+  const card = document.getElementById('task-card');
+  card.innerHTML = `
+    <div class="task-head">
+      <span class="task-tag">№ ${task.num}</span>
+      <span class="task-topic">${task.topic}</span>
+    </div>
+    <div class="task-q">${task.question}</div>
+    ${task.text ? `<div class="task-text">${task.text}</div>` : ''}
+
+    <div class="answer-block" id="ans-block">
+      <div class="answer-label">Твой ответ</div>
+      <div class="answer-row">
+        <input type="text" class="answer-input" id="my-input" placeholder="Введи ответ" autocomplete="off">
+        <button class="answer-submit" id="my-submit">Ответить</button>
+      </div>
+      <div class="my-status" id="my-status"></div>
+    </div>
+
+    <div class="opp-block" id="opp-block">
+      <span class="opp-label">${state.foeName}:</span>
+      <span class="opp-status-text">думает...</span>
+    </div>
+
+    <div class="reveal" id="reveal">
+      <div class="reveal-label">Правильный ответ</div>
+      <div class="reveal-answer">${task.answer}</div>
+      <div class="reveal-exp">${task.explanation}</div>
+    </div>
+
+    <button class="next-btn" id="next-btn">${state.current === state.taskOrder.length - 1 ? 'Завершить дуэль' : 'Следующее задание →'}</button>
+    <div class="waiting" id="waiting">Ждём, пока соперник нажмёт «Дальше»...</div>
+  `;
+
+  document.getElementById('my-input').addEventListener('keypress', e => { if (e.key === 'Enter') mySubmit(); });
+  document.getElementById('my-submit').addEventListener('click', mySubmit);
+  document.getElementById('next-btn').addEventListener('click', requestNext);
+  document.getElementById('my-input').focus();
+}
+
+function mySubmit() {
+  if (state.iAnswered) return;
+  const input = document.getElementById('my-input');
+  const value = input.value.trim();
+  if (!value) return;
+
+  const taskIdx = state.taskOrder[state.current];
+  const task = TASKS[taskIdx];
+  const correct = checkAnswer(value, task);
+
+  state.iAnswered = true;
+  state.iWasCorrect = correct;
+
+  const block = document.getElementById('ans-block');
+  const status = document.getElementById('my-status');
+
+  if (correct) {
+    block.classList.add('correct');
+    status.classList.add('correct');
+    status.textContent = '✓ Верно! +1 очко';
+    state.myScore++;
+    document.getElementById('score-me').textContent = state.myScore;
+  } else {
+    block.classList.add('wrong');
+    status.classList.add('wrong');
+    status.textContent = '✗ Неверно';
+  }
+
+  input.disabled = true;
+  document.getElementById('my-submit').disabled = true;
+
+  send({ type: 'answer', correct });
+  checkRoundEnd();
+}
+
+function updateOpponentStatus() {
+  const el = document.getElementById('opp-block');
+  const textEl = el.querySelector('.opp-status-text');
+  if (state.foeWasCorrect) {
+    el.classList.add('correct');
+    textEl.textContent = 'ответил верно';
+  } else {
+    el.classList.add('wrong');
+    textEl.textContent = 'ответил неверно';
+  }
+}
+
+function checkRoundEnd() {
+  if (state.roundLocked) return;
+  const someoneCorrect = state.iWasCorrect || state.foeWasCorrect;
+  const bothAnswered = state.iAnswered && state.foeAnswered;
+
+  if (someoneCorrect || bothAnswered) {
+    state.roundLocked = true;
+    const input = document.getElementById('my-input');
+    const btn = document.getElementById('my-submit');
+    if (input) input.disabled = true;
+    if (btn) btn.disabled = true;
+
+    if (!state.iAnswered) {
+      const status = document.getElementById('my-status');
+      status.textContent = '⏱ Соперник опередил';
+    }
+
+    document.getElementById('reveal').classList.add('shown');
+    document.getElementById('next-btn').classList.add('shown');
+  }
+}
+
+function requestNext() {
+  state.iWantNext = true;
+  document.getElementById('next-btn').disabled = true;
+  document.getElementById('waiting').classList.add('shown');
+  send({ type: 'next-ready' });
+  tryGoNext();
+}
+
+function tryGoNext() {
+  if (state.iWantNext && state.foeWantsNext) {
+    state.current++;
+    if (state.current >= state.taskOrder.length) {
+      showFinal();
+    } else {
+      renderTask();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+}
+
+function showFinal() {
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('arena').classList.remove('active');
+  document.getElementById('final').classList.add('active');
+
+  document.getElementById('final-me-name').textContent = state.myName;
+  document.getElementById('final-foe-name').textContent = state.foeName;
+  document.getElementById('final-me-score').textContent = state.myScore;
+  document.getElementById('final-foe-score').textContent = state.foeScore;
+
+  const title = document.getElementById('final-title');
+  const winner = document.getElementById('final-winner');
+
+  if (state.myScore > state.foeScore) {
+    title.textContent = 'Победа!';
+    winner.textContent = `${state.myName} — победитель`;
+    winner.style.color = 'var(--me)';
+  } else if (state.foeScore > state.myScore) {
+    title.textContent = 'Поражение';
+    winner.textContent = `${state.foeName} — победитель`;
+    winner.style.color = 'var(--foe)';
+  } else {
+    title.textContent = 'Ничья';
+    winner.textContent = `${state.myName} = ${state.foeName}`;
+    winner.style.color = 'var(--warn)';
+  }
+}
+</script>
+
+</body>
+</html>
